@@ -57,7 +57,59 @@ public class DataMigration {
 //        migrateFrom189To203WithWhite();
 //        testDBConnection();
 //        migrateFrom202To203WithBlack1();
-        migrateFrom202To203WithGapp();
+//        migrateFrom202To203WithGapp();
+//        log("" + new Date().getTime());
+
+        //migrate sensitive word
+        migrateSensitiveWord();
+        migrateSensitiveWordAlias();
+    }
+
+    private static void migrateSensitiveWordAlias() {
+
+    }
+
+    private static void migrateSensitiveWord() {
+        //                Connection conn202 = null;
+        Properties connProperties202 = new Properties();
+        connProperties202.put("user", "admin");
+        connProperties202.put("password", "admin");
+        String connStr202 = "jdbc:mysql://192.168.10.202:3306/product_center";
+
+//                Connection conn203Yuwt = null;
+//        Connection conn203Prs = null;
+        Properties connProperties203 = new Properties();
+        connProperties203.put("user", "root");
+        connProperties203.put("password", "123456");
+        String connStr203Yuwt = "jdbc:mysql://192.168.10.203:3306/yuwantao";
+
+        String selectGoodsStr = "select sensitive_word from new_sensitive_word";
+        String insertPrsGappBookStr = "insert into PRS_SENSITIVE_WORD(GROUP_ID, TYPE, FLITER_SCOPE, CREATE_BY, CREATE_TIME, FLITER_NAME) values(?, ?, ?, ?, ?,?)";
+
+        try (
+                Connection conn202 = DriverManager.getConnection(connStr202, connProperties202);
+                Connection conn203Yuwt = DriverManager.getConnection(connStr203Yuwt, connProperties203);
+                PreparedStatement selectGoodsStmt = conn202.prepareStatement(selectGoodsStr);
+                PreparedStatement insertPrsGappBookStmt = conn203Yuwt.prepareStatement(insertPrsGappBookStr);
+        ) {
+            conn202.setAutoCommit(false);
+            conn203Yuwt.setAutoCommit(false);
+
+            ResultSet rs = selectGoodsStmt.executeQuery();
+            while (rs.next()) {
+                insertPrsGappBookStmt.setLong(1, 42);
+                insertPrsGappBookStmt.setInt(2, 1);
+                insertPrsGappBookStmt.setString(3, "");
+                insertPrsGappBookStmt.setString(1, rs.getString("isbn"));
+                insertPrsGappBookStmt.executeUpdate();
+            }
+
+            conn202.setAutoCommit(true);
+            conn203Yuwt.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        log("migrate to gapp succeeded.");
     }
 
     private static void migrateFrom202To203WithGapp() {
