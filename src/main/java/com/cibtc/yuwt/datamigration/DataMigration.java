@@ -61,8 +61,41 @@ public class DataMigration {
 //        log("" + new Date().getTime());
 
         //migrate sensitive word
-        migrateSensitiveWord();
-        migrateSensitiveWordAlias();
+//        migrateSensitiveWord();
+//        migrateSensitiveWordAlias();
+        insertIntoPrs_Gapp_Doc_Content();
+    }
+
+    private static void insertIntoPrs_Gapp_Doc_Content() {
+        Properties connProperties203 = new Properties();
+        connProperties203.put("user", "root");
+        connProperties203.put("password", "123456");
+        String connStr203Yuwt = "jdbc:mysql://192.168.10.203:3306/DEV_CIBTC_PRS";
+
+        String selectGoodsStr = "select isbn from PRS_GAPP_BOOK";
+        String insertPrsGappBookStr = "insert into PRS_GAPP_DOC_CONTENT(DOC_ID, ISBN, STATUS, CREATE_TIME, REMARK) values(?, ?, ?, ?,?)";
+
+        try (
+                Connection conn203Yuwt = DriverManager.getConnection(connStr203Yuwt, connProperties203);
+                PreparedStatement selectGoodsStmt = conn203Yuwt.prepareStatement(selectGoodsStr);
+                PreparedStatement insertPrsGappBookStmt = conn203Yuwt.prepareStatement(insertPrsGappBookStr);
+        ) {
+            conn203Yuwt.setAutoCommit(false);
+
+            ResultSet rs = selectGoodsStmt.executeQuery();
+            while (rs.next()) {
+                insertPrsGappBookStmt.setLong(1, 18);
+                insertPrsGappBookStmt.setString(2, rs.getString("isbn"));
+                insertPrsGappBookStmt.setInt(3, 0);
+                insertPrsGappBookStmt.setLong(4, new Date().getTime());
+                insertPrsGappBookStmt.setString(5, "图书");
+                insertPrsGappBookStmt.executeUpdate();
+            }
+
+            conn203Yuwt.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void migrateSensitiveWordAlias() {
@@ -99,8 +132,10 @@ public class DataMigration {
             while (rs.next()) {
                 insertPrsGappBookStmt.setLong(1, 42);
                 insertPrsGappBookStmt.setInt(2, 1);
-                insertPrsGappBookStmt.setString(3, "");
-                insertPrsGappBookStmt.setString(1, rs.getString("isbn"));
+                insertPrsGappBookStmt.setString(3, "1,2,3,4,5");
+                insertPrsGappBookStmt.setString(4, "admin");
+                insertPrsGappBookStmt.setLong(5, new Date().getTime());
+                insertPrsGappBookStmt.setString(6, rs.getString("isbn"));
                 insertPrsGappBookStmt.executeUpdate();
             }
 
